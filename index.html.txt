@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>瑪麗隔壁刮刮樂</title>
+
+<style>
+
+body{
+font-family:Arial;
+text-align:center;
+background:#f4f4f4;
+}
+
+h1{
+color:#ff6600;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(8,70px);
+gap:10px;
+justify-content:center;
+margin-top:20px;
+}
+
+.card{
+width:70px;
+height:70px;
+background:#cccccc;
+display:flex;
+align-items:center;
+justify-content:center;
+border-radius:10px;
+cursor:pointer;
+font-weight:bold;
+}
+
+.open{
+background:gold;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>🎰 瑪麗隔壁刮刮樂</h1>
+
+<p>上傳娃娃機戰利品即可刮一次</p>
+
+<input type="file">
+
+<div class="grid" id="grid"></div>
+
+<script>
+
+let prizes=[
+"大獎",
+"二獎",
+"三獎",
+...Array(77).fill("未中")
+]
+
+prizes.sort(()=>Math.random()-0.5)
+
+let grid=document.getElementById("grid")
+
+for(let i=0;i<80;i++){
+
+let card=document.createElement("div")
+
+card.className="card"
+card.innerText=i+1
+
+card.onclick=()=>{
+
+if(card.classList.contains("open")) return
+
+card.classList.add("open")
+card.innerText=prizes[i]
+
+}
+
+grid.appendChild(card)
+
+}
+
+</script>
+
+</body>
+</html>
