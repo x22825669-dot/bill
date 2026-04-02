@@ -1,64 +1,80 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-TW">
 <head>
-<meta charset="UTF-8">
-<title>瑪麗隔壁刮刮樂</title>
-
-<style>
-body{font-family:Arial;text-align:center;}
-.grid{
-display:grid;
-grid-template-columns:repeat(8,60px);
-gap:10px;
-justify-content:center;
-}
-.card{
-width:60px;height:60px;background:#ccc;
-display:flex;align-items:center;justify-content:center;
-border-radius:10px;cursor:pointer;
-}
-</style>
+    <meta charset="UTF-8">
+    <title>🎰 瑪麗隔壁刮刮樂 x LINE 連動版</title>
+    <style>
+        body { font-family: Arial; text-align: center; background: #f4f4f4; padding: 20px; }
+        h1 { color: #ff6600; }
+        .info-box { background: white; padding: 15px; border-radius: 10px; display: inline-block; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, 70px); gap: 10px; justify-content: center; max-width: 650px; margin: 0 auto; }
+        .card { width: 70px; height: 70px; background: #cccccc; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; font-weight: bold; color: #666; transition: 0.3s; }
+        .card.open { background: gold !important; color: black; cursor: default; }
+        .card.win { background: #ff4757 !important; color: white; animate: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    </style>
 </head>
-
 <body>
 
-<h1>🎰 瑪麗隔壁刮刮樂</h1>
-<p>每人只能刮一次</p>
+    <h1>🎰 瑪麗隔壁刮刮樂</h1>
+    
+    <div class="info-box">
+        <p>📸 <strong>請先上傳戰利品照片以解鎖：</strong></p>
+        <input type="file" id="upload" accept="image/*">
+    </div>
 
-<div id="grid"></div>
+    <div class="grid" id="grid"></div>
 
-<script>
+    <script>
+        // --- 【後台設定區】 ---
+        const LINE_ID = "你的LINEID"; // 👈 重要：請改成你的 LINE ID (例如 @123abcd)
+        let prizes = ["大獎 🏆", "二獎 🎁", "三獎 🧧", ...Array(77).fill("未中獎")];
+        // ---------------------
 
-let played = false
+        prizes.sort(() => Math.random() - 0.5);
+        const grid = document.getElementById("grid");
+        const upload = document.getElementById("upload");
+        let hasPlayed = false;
 
-let prizes=["大獎","二獎","三獎",...Array(77).fill("未中")]
-prizes.sort(()=>Math.random()-0.5)
+        for (let i = 0; i < 80; i++) {
+            let card = document.createElement("div");
+            card.className = "card";
+            card.innerText = i + 1;
 
-let grid=document.getElementById("grid")
+            card.onclick = () => {
+                if (!upload.value) {
+                    alert("請先上傳照片喔！");
+                    return;
+                }
+                if (hasPlayed) return;
+                if (card.classList.contains("open")) return;
 
-for(let i=0;i<80;i++){
+                openCard(card, i);
+            };
+            grid.appendChild(card);
+        }
 
-let div=document.createElement("div")
-div.className="card"
-div.innerText=i+1
+        function openCard(card, index) {
+            hasPlayed = true;
+            const result = prizes[index];
+            card.innerText = result;
+            card.classList.add("open");
 
-div.onclick=()=>{
-
-if(played){
-alert("你已經刮過了")
-return
-}
-
-div.innerText=prizes[i]
-played=true
-
-}
-
-grid.appendChild(div)
-
-}
-
-</script>
-
+            if (result.includes("獎")) {
+                card.classList.add("win");
+                
+                // 延遲一下下再跳出視窗，感官比較好
+                setTimeout(() => {
+                    const msg = encodeURIComponent("你好！我在刮刮樂抽中了：" + result + "！這是我的戰利品照片，我要領獎！");
+                    if (confirm("恭喜中獎！點擊「確定」自動開啟 LINE 聯繫台主領獎 🎁")) {
+                        // 跳轉到 LINE 私訊
+                        window.location.href = "https://line.me/R/oaMessage/"@886oovtj"/?" + msg;
+                    }
+                }, 500);
+            } else {
+                alert("可惜沒中獎，下次再接再厲！");
+            }
+        }
+    </script>
 </body>
 </html>
