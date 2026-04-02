@@ -2,26 +2,28 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🎰 瑪麗隔壁刮刮樂</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
-        h1 { color: #ff6600; }
-        .info-box { background: white; padding: 15px; border-radius: 10px; display: inline-block; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 2px solid #ff6600; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; justify-content: center; max-width: 600px; margin: 0 auto; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; text-align: center; background: #f4f4f4; padding: 20px; margin: 0; }
+        h1 { color: #ff6600; font-size: 24px; }
+        .info-box { background: white; padding: 15px; border-radius: 12px; display: block; max-width: 90%; margin: 0 auto 20px auto; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid #ff6600; }
         
-        /* 初始狀態：灰色、禁止點擊 */
-        .card { width: 70px; height: 70px; background: #cccccc; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: not-allowed; font-weight: bold; color: #999; transition: 0.3s; }
+        /* 按鈕樣式 */
+        .btn { color: white; padding: 12px 24px; border-radius: 25px; display: inline-block; cursor: pointer; margin: 10px 5px; font-weight: bold; border: none; font-size: 16px; transition: 0.3s; }
+        .select-btn { background: #3498db; } /* 藍色：選擇照片 */
+        .confirm-btn { background: #27ae60; display: none; } /* 綠色：確認上傳 (預設隱藏) */
         
-        /* 解鎖狀態：變色、可點擊 */
-        .card.ready { background: #ff9f43; color: white; cursor: pointer; border: 1px solid #d35400; }
-        .card.ready:hover { transform: scale(1.1); background: #ff6600; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 8px; justify-content: center; max-width: 500px; margin: 0 auto; padding-bottom: 50px; }
         
-        /* 刮開後的樣式 */
-        .card.open { background: gold !important; color: black !important; cursor: default; transform: rotateY(180deg); }
-        .card.win { background: #ff4757 !important; color: white !important; font-size: 14px; }
+        /* 刮刮卡樣式 */
+        .card { width: 65px; height: 65px; background: #ddd; display: flex; align-items: center; justify-content: center; border-radius: 8px; cursor: not-allowed; font-weight: bold; color: #888; transition: all 0.2s; }
+        .card.ready { background: #ff9f43; color: white; cursor: pointer; box-shadow: 0 3px 0 #d35400; }
+        .card.open { background: #f1c40f !important; color: #2c3e50 !important; cursor: default; }
+        .card.win { background: #e74c3c !important; color: white !important; }
         
-        #status { font-weight: bold; margin-top: 10px; color: #e74c3c; }
+        #status { font-weight: bold; margin-top: 10px; font-size: 14px; color: #e74c3c; }
+        input[type="file"] { display: none; }
     </style>
 </head>
 <body>
@@ -29,59 +31,75 @@
     <h1>🎰 瑪麗隔壁刮刮樂</h1>
     
     <div class="info-box">
-        <p>📸 <strong>夾出戰利品了嗎？請先上傳照片：</strong></p>
+        <p style="margin:0 0 10px 0;">📸 <strong>第一步：請拍照或上傳戰利品</strong></p>
+        
+        <label for="upload" class="btn select-btn" id="label-select">1. 選擇照片</label>
         <input type="file" id="upload" accept="image/*">
-        <div id="status">❌ 目前尚未解鎖，請先選擇照片</div>
+        
+        <button class="btn confirm-btn" id="confirm-upload">2. 確定上傳並開刮</button>
+        
+        <div id="status">尚未選擇照片</div>
     </div>
 
     <div class="grid" id="grid"></div>
 
     <script>
         // --- 設定區 ---
-        const LINE_ID = "@886oovtj"; // 記得改成你的 LINE ID
+        const LINE_ID = "imbored0425"; 
         let prizes = ["大獎 🏆", "二獎 🎁", "三獎 🧧", ...Array(77).fill("銘謝惠顧")];
         // -------------
 
         prizes.sort(() => Math.random() - 0.5);
-        const grid = document.getElementById("grid");
         const upload = document.getElementById("upload");
+        const confirmBtn = document.getElementById("confirm-upload");
+        const selectLabel = document.getElementById("label-select");
         const statusText = document.getElementById("status");
-        let isUnlocked = false; // 控制是否解鎖
+        let isUnlocked = false;
         let hasPlayed = false;
 
         // 生成 80 格
+        const grid = document.getElementById("grid");
         for (let i = 0; i < 80; i++) {
             let card = document.createElement("div");
             card.className = "card";
             card.innerText = i + 1;
-
-            card.onclick = () => {
+            card.onclick = function() {
                 if (!isUnlocked) {
-                    alert("請先點擊上方按鈕「上傳照片」才能開始刮獎喔！");
+                    alert("請先完成「確定上傳」喔！");
                     return;
                 }
                 if (hasPlayed) return;
-                openCard(card, i);
+                openCard(this, i);
             };
             grid.appendChild(card);
         }
 
-        // 強化版監聽器：只要檔案輸入框有變動就觸發
-        upload.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                unlockGame();
+        // 當使用者選好檔案時
+        upload.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                statusText.innerText = "已選取照片： " + e.target.files[0].name;
+                statusText.style.color = "#3498db";
+                confirmBtn.style.display = "inline-block"; // 顯示「確定上傳」按鈕
+                selectLabel.innerText = "重新選擇";
             }
         });
 
-        function unlockGame() {
-            isUnlocked = true;
-            statusText.innerText = "✅ 已解鎖！請在下方挑選一個數字開獎";
-            statusText.style.color = "#27ae60";
+        // 當使用者按下「確定上傳」時
+        confirmBtn.addEventListener('click', function() {
+            statusText.innerText = "上傳中...";
             
-            // 讓所有格子變色，表示可以點擊了
-            const cards = document.querySelectorAll('.card');
-            cards.forEach(c => c.classList.add('ready'));
-        }
+            // 模擬上傳過程 (FileReader)
+            const reader = new FileReader();
+            reader.onload = function() {
+                isUnlocked = true;
+                statusText.innerText = "✅ 上傳成功！請從下方挑選一個數字";
+                statusText.style.color = "#27ae60";
+                confirmBtn.style.display = "none"; // 隱藏確認按鈕
+                selectLabel.style.display = "none"; // 隱藏選擇按鈕
+                document.querySelectorAll('.card').forEach(c => c.classList.add('ready'));
+            };
+            reader.readAsDataURL(upload.files[0]);
+        });
 
         function openCard(card, index) {
             hasPlayed = true;
@@ -92,13 +110,13 @@
             if (result.includes("獎")) {
                 card.classList.add("win");
                 setTimeout(() => {
-                    const msg = encodeURIComponent("你好！我在刮刮樂抽中了：" + result + "！我要領獎！");
-                    if (confirm("🎊 恭喜中獎！點擊確定前往 LINE 聯繫台主領獎")) {
-                        window.location.href = "https://line.me/R/oaMessage/"@886oovtj"/?" + msg;
+                    const msg = encodeURIComponent("你好！我在刮刮樂中獎了：" + result);
+                    if (confirm("🎊 恭喜中獎！點擊確定聯繫台主領獎")) {
+                        window.location.href = "https://line.me/R/oaMessage/"imbored0425"/?" + msg;
                     }
-                }, 500);
+                }, 400);
             } else {
-                alert("可惜沒中獎，再接再厲！");
+                setTimeout(() => alert("可惜沒中獎，再接再厲！"), 200);
             }
         }
     </script>
