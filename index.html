@@ -5,64 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>🎰 瑪麗隔壁刮刮樂</title>
     <style>
-        body { font-family: sans-serif; text-align: center; background: #f0f0f0; padding: 20px; margin: 0; }
-        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-        h1 { color: #ff6600; margin-bottom: 10px; }
+        body { font-family: sans-serif; text-align: center; background: #fdf2e9; padding: 20px; margin: 0; }
+        .container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { color: #e67e22; margin-bottom: 5px; }
+        .subtitle { color: #7f8c8d; font-size: 14px; margin-bottom: 20px; }
         
-        /* 按鈕區塊 */
-        .upload-area { border: 2px dashed #ddd; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        .btn { padding: 12px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; display: block; width: 100%; margin: 10px 0; font-size: 16px; }
+        /* 按鈕樣式 */
+        .upload-section { background: #fcf3cf; padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px dashed #f1c40f; }
+        .btn { padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; border: none; display: block; width: 100%; margin: 10px 0; font-size: 18px; transition: 0.3s; }
         .btn-select { background: #3498db; color: white; }
-        .btn-confirm { background: #27ae60; color: white; display: none; } /* 預設隱藏 */
+        .btn-confirm { background: #27ae60; color: white; display: none; box-shadow: 0 4px #1e8449; } /* 初始隱藏 */
+        .btn-confirm:active { box-shadow: none; transform: translateY(4px); }
         
-        /* 刮刮樂網格 */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 8px; margin-top: 20px; }
-        .card { width: 60px; height: 60px; background: #eee; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-weight: bold; color: #aaa; cursor: not-allowed; transition: 0.2s; }
+        /* 刮刮卡網格 */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 10px; margin-top: 20px; }
+        .card { width: 65px; height: 65px; background: #ecf0f1; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-weight: bold; color: #bdc3c7; cursor: not-allowed; transition: 0.2s; border: 1px solid #dcdde1; }
         
-        /* 解鎖後的樣式 */
-        .card.ready { background: #ff9f43; color: white; cursor: pointer; }
-        .card.open { background: #f1c40f !important; color: #333 !important; }
+        /* 解鎖後樣式 */
+        .card.ready { background: #e67e22; color: white; cursor: pointer; border: 1px solid #d35400; box-shadow: 0 3px #a04000; }
+        .card.open { background: #f1c40f !important; color: #2c3e50 !important; box-shadow: none !important; transform: none !important; }
         .card.win { background: #e74c3c !important; color: white !important; }
         
-        #status { margin-top: 10px; font-weight: bold; color: #888; }
+        #status-msg { margin-top: 10px; font-weight: bold; color: #d35400; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>🎰 瑪麗隔壁刮刮樂</h1>
+    <p class="subtitle">夾出戰利品後，上傳照片即可參加抽獎！</p>
     
-    <div class="upload-area">
-        <p>📸 請先拍下夾到的戰利品</p>
-        
-        <label for="file-input" class="btn btn-select" id="select-label">1. 選擇/拍攝照片</label>
+    <div class="upload-section">
+        <label for="file-input" class="btn btn-select" id="label-step1">1. 點我拍照 / 選取照片</label>
         <input type="file" id="file-input" accept="image/*" style="display:none;">
         
-        <button id="confirm-btn" class="btn btn-confirm">2. 確定上傳並解鎖</button>
+        <button id="btn-step2" class="btn btn-confirm">2. 確定上傳並開始刮獎</button>
         
-        <div id="status">目前狀態：尚未選取</div>
+        <div id="status-msg">狀態：等待照片中...</div>
     </div>
 
     <div id="grid" class="grid"></div>
 </div>
 
 <script>
-    // --- 設定區 ---
-    const LINE_ID = "imbored0425"; // 記得改這行！
-    let prizes = ["大獎 🏆", "二獎 🎁", "三獎 🧧", ...Array(77).fill("未中獎")];
+    // --- 【台主自訂區】 ---
+    const LINE_ID = "imbored0425"; // 👈 請修改成你的 LINE ID
+    let prizes = ["大獎 🏆", "二獎 🎁", "三獎 🧧", ...Array(77).fill("銘謝惠顧")];
     prizes.sort(() => Math.random() - 0.5);
-    // --------------
+    // ---------------------
 
     const fileInput = document.getElementById('file-input');
-    const confirmBtn = document.getElementById('confirm-btn');
-    const statusText = document.getElementById('status');
-    const selectLabel = document.getElementById('select-label');
-    const grid = document.getElementById('grid');
+    const btnStep2 = document.getElementById('btn-step2');
+    const labelStep1 = document.getElementById('label-step1');
+    const statusMsg = document.getElementById('status-msg');
     
     let isUnlocked = false;
     let hasPlayed = false;
 
-    // 初始化格子
+    // 建立 80 個格子
+    const grid = document.getElementById('grid');
     for (let i = 0; i < 80; i++) {
         const card = document.createElement('div');
         card.className = 'card';
@@ -70,15 +71,16 @@
         card.onclick = () => {
             if (!isUnlocked) return alert("請先完成上傳步驟！");
             if (hasPlayed) return;
-            hasPlayed = true;
             
+            hasPlayed = true;
             card.innerText = prizes[i];
             card.classList.add('open');
+            
             if (prizes[i].includes("獎")) {
                 card.classList.add('win');
                 setTimeout(() => {
-                    const msg = encodeURIComponent("你好！我刮中了：" + prizes[i]);
-                    if(confirm("恭喜中獎！是否前往 LINE 領獎？")) {
+                    const msg = encodeURIComponent("老闆你好！我刮中了：" + prizes[i]);
+                    if(confirm("恭喜中獎！🎁\n點擊確定將自動開啟 LINE 聯繫領獎")) {
                         window.location.href = "https://line.me/R/oaMessage/"imbored0425"/?" + msg;
                     }
                 }, 500);
@@ -89,26 +91,26 @@
         grid.appendChild(card);
     }
 
-    // 當選好檔案時
+    // 當選好檔案後觸發
     fileInput.onchange = (e) => {
         if (e.target.files.length > 0) {
-            statusText.innerText = "已選取：" + e.target.files[0].name;
-            confirmBtn.style.display = "block"; // 顯示確認按鈕
-            selectLabel.innerText = "重新選擇";
+            statusMsg.innerText = "📸 已選取照片：" + e.target.files[0].name;
+            btnStep2.style.display = "block"; // 顯示確認按鈕
+            labelStep1.innerText = "重新選取";
         }
     };
 
-    // 當按下確認按鈕時
-    confirmBtn.onclick = () => {
-        statusText.innerText = "✅ 上傳成功！請開刮";
-        statusText.style.color = "#27ae60";
+    // 當點擊確定上傳後觸發
+    btnStep2.onclick = () => {
         isUnlocked = true;
+        statusMsg.innerText = "✅ 上傳成功！請挑選數字開獎";
+        statusMsg.style.color = "#27ae60";
         
-        // 隱藏所有按鈕，讓介面乾淨
-        selectLabel.style.display = "none";
-        confirmBtn.style.display = "none";
+        // 隱藏上傳控制項
+        labelStep1.style.display = "none";
+        btnStep2.style.display = "none";
         
-        // 啟動格子
+        // 點亮所有格子
         document.querySelectorAll('.card').forEach(c => c.classList.add('ready'));
     };
 </script>
