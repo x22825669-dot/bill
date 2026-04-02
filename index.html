@@ -2,16 +2,26 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>🎰 瑪麗隔壁刮刮樂 x LINE 連動版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎰 瑪麗隔壁刮刮樂</title>
     <style>
-        body { font-family: Arial; text-align: center; background: #f4f4f4; padding: 20px; }
+        body { font-family: Arial, sans-serif; text-align: center; background: #f4f4f4; padding: 20px; }
         h1 { color: #ff6600; }
-        .info-box { background: white; padding: 15px; border-radius: 10px; display: inline-block; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, 70px); gap: 10px; justify-content: center; max-width: 650px; margin: 0 auto; }
-        .card { width: 70px; height: 70px; background: #cccccc; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: pointer; font-weight: bold; color: #666; transition: 0.3s; }
-        .card.open { background: gold !important; color: black; cursor: default; }
-        .card.win { background: #ff4757 !important; color: white; animate: pulse 1s infinite; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        .info-box { background: white; padding: 15px; border-radius: 10px; display: inline-block; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 2px solid #ff6600; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 10px; justify-content: center; max-width: 600px; margin: 0 auto; }
+        
+        /* 初始狀態：灰色、禁止點擊 */
+        .card { width: 70px; height: 70px; background: #cccccc; display: flex; align-items: center; justify-content: center; border-radius: 10px; cursor: not-allowed; font-weight: bold; color: #999; transition: 0.3s; }
+        
+        /* 解鎖狀態：變色、可點擊 */
+        .card.ready { background: #ff9f43; color: white; cursor: pointer; border: 1px solid #d35400; }
+        .card.ready:hover { transform: scale(1.1); background: #ff6600; }
+        
+        /* 刮開後的樣式 */
+        .card.open { background: gold !important; color: black !important; cursor: default; transform: rotateY(180deg); }
+        .card.win { background: #ff4757 !important; color: white !important; font-size: 14px; }
+        
+        #status { font-weight: bold; margin-top: 10px; color: #e74c3c; }
     </style>
 </head>
 <body>
@@ -19,39 +29,58 @@
     <h1>🎰 瑪麗隔壁刮刮樂</h1>
     
     <div class="info-box">
-        <p>📸 <strong>請先上傳戰利品照片以解鎖：</strong></p>
+        <p>📸 <strong>夾出戰利品了嗎？請先上傳照片：</strong></p>
         <input type="file" id="upload" accept="image/*">
+        <div id="status">❌ 目前尚未解鎖，請先選擇照片</div>
     </div>
 
     <div class="grid" id="grid"></div>
 
     <script>
-        // --- 【後台設定區】 ---
-        const LINE_ID = "@886oovtj"; // 👈 重要：請改成你的 LINE ID (例如 @123abcd)
-        let prizes = ["大獎 🏆", "二獎 🎁", "三獎 🧧", ...Array(77).fill("未中獎")];
-        // ---------------------
+        // --- 設定區 ---
+        const LINE_ID = "@886oovtj"; // 記得改成你的 LINE ID
+        let prizes = ["大獎 🏆", "二獎 🎁", "三獎 🧧", ...Array(77).fill("銘謝惠顧")];
+        // -------------
 
         prizes.sort(() => Math.random() - 0.5);
         const grid = document.getElementById("grid");
         const upload = document.getElementById("upload");
+        const statusText = document.getElementById("status");
+        let isUnlocked = false; // 控制是否解鎖
         let hasPlayed = false;
 
+        // 生成 80 格
         for (let i = 0; i < 80; i++) {
             let card = document.createElement("div");
             card.className = "card";
             card.innerText = i + 1;
 
             card.onclick = () => {
-                if (!upload.value) {
-                    alert("請先上傳照片喔！");
+                if (!isUnlocked) {
+                    alert("請先點擊上方按鈕「上傳照片」才能開始刮獎喔！");
                     return;
                 }
                 if (hasPlayed) return;
-                if (card.classList.contains("open")) return;
-
                 openCard(card, i);
             };
             grid.appendChild(card);
+        }
+
+        // 強化版監聽器：只要檔案輸入框有變動就觸發
+        upload.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                unlockGame();
+            }
+        });
+
+        function unlockGame() {
+            isUnlocked = true;
+            statusText.innerText = "✅ 已解鎖！請在下方挑選一個數字開獎";
+            statusText.style.color = "#27ae60";
+            
+            // 讓所有格子變色，表示可以點擊了
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(c => c.classList.add('ready'));
         }
 
         function openCard(card, index) {
@@ -62,17 +91,14 @@
 
             if (result.includes("獎")) {
                 card.classList.add("win");
-                
-                // 延遲一下下再跳出視窗，感官比較好
                 setTimeout(() => {
-                    const msg = encodeURIComponent("你好！我在刮刮樂抽中了：" + result + "！這是我的戰利品照片，我要領獎！");
-                    if (confirm("恭喜中獎！點擊「確定」自動開啟 LINE 聯繫台主領獎 🎁")) {
-                        // 跳轉到 LINE 私訊
+                    const msg = encodeURIComponent("你好！我在刮刮樂抽中了：" + result + "！我要領獎！");
+                    if (confirm("🎊 恭喜中獎！點擊確定前往 LINE 聯繫台主領獎")) {
                         window.location.href = "https://line.me/R/oaMessage/"@886oovtj"/?" + msg;
                     }
                 }, 500);
             } else {
-                alert("可惜沒中獎，下次再接再厲！");
+                alert("可惜沒中獎，再接再厲！");
             }
         }
     </script>
