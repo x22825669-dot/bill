@@ -5,19 +5,24 @@
 <title>瑪麗隔壁刮刮樂</title>
 
 <style>
+
 body{
 font-family:Arial;
 text-align:center;
 }
-.grid{
+
+/* 重點在這裡 */
+#grid{
 display:grid;
 grid-template-columns:repeat(8,60px);
 gap:10px;
 justify-content:center;
 margin-top:20px;
 }
+
 .card{
-width:60px;height:60px;
+width:60px;
+height:60px;
 background:#ccc;
 display:flex;
 align-items:center;
@@ -25,9 +30,11 @@ justify-content:center;
 border-radius:10px;
 cursor:pointer;
 }
+
 .open{
 background:gold;
 }
+
 </style>
 </head>
 
@@ -36,6 +43,7 @@ background:gold;
 <h1>🎰 瑪麗隔壁刮刮樂</h1>
 <p>每人只能刮一次</p>
 
+<!-- 這行很重要 -->
 <div id="grid"></div>
 
 <script>
