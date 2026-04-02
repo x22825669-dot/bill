@@ -4,42 +4,21 @@
 <meta charset="UTF-8">
 <title>瑪麗隔壁刮刮樂</title>
 
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
 <style>
-
-body{
-font-family:Arial;
-text-align:center;
-background:#f4f4f4;
-}
-
-h1{
-color:#ff6600;
-}
-
+body{font-family:Arial;text-align:center;}
 .grid{
 display:grid;
-grid-template-columns:repeat(8,70px);
+grid-template-columns:repeat(8,60px);
 gap:10px;
 justify-content:center;
-margin-top:20px;
 }
-
 .card{
-width:70px;
-height:70px;
-background:#cccccc;
-display:flex;
-align-items:center;
-justify-content:center;
-border-radius:10px;
-cursor:pointer;
-font-weight:bold;
+width:60px;height:60px;background:#ccc;
+display:flex;align-items:center;justify-content:center;
+cursor:pointer;border-radius:10px;
 }
-
-.open{
-background:gold;
-}
-
 </style>
 </head>
 
@@ -47,20 +26,37 @@ background:gold;
 
 <h1>🎰 瑪麗隔壁刮刮樂</h1>
 
-<p>上傳娃娃機戰利品即可刮一次</p>
+<p id="status">登入中...</p>
 
-<input type="file">
-
-<div class="grid" id="grid"></div>
+<div id="grid"></div>
 
 <script>
 
-let prizes=[
-"大獎",
-"二獎",
-"三獎",
-...Array(77).fill("未中")
-]
+let userId=null
+
+async function init(){
+
+await liff.init({
+liffId:"你的LIFF ID"
+})
+
+if(!liff.isLoggedIn()){
+liff.login()
+return
+}
+
+let profile=await liff.getProfile()
+userId=profile.userId
+
+document.getElementById("status").innerText="歡迎："+profile.displayName
+
+loadGame()
+
+}
+
+function loadGame(){
+
+let prizes=["大獎","二獎","三獎",...Array(77).fill("未中")]
 
 prizes.sort(()=>Math.random()-0.5)
 
@@ -68,23 +64,29 @@ let grid=document.getElementById("grid")
 
 for(let i=0;i<80;i++){
 
-let card=document.createElement("div")
+let div=document.createElement("div")
+div.className="card"
+div.innerText=i+1
 
-card.className="card"
-card.innerText=i+1
+div.onclick=()=>{
 
-card.onclick=()=>{
+if(localStorage.getItem("played")){
+alert("你已經刮過了")
+return
+}
 
-if(card.classList.contains("open")) return
-
-card.classList.add("open")
-card.innerText=prizes[i]
+div.innerText=prizes[i]
+localStorage.setItem("played",true)
 
 }
 
-grid.appendChild(card)
+grid.appendChild(div)
 
 }
+
+}
+
+init()
 
 </script>
 
