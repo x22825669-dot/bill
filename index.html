@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <title>瑪麗隔壁刮刮樂</title>
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-
 <style>
 body{font-family:Arial;text-align:center;}
 .grid{
@@ -17,7 +15,7 @@ justify-content:center;
 .card{
 width:60px;height:60px;background:#ccc;
 display:flex;align-items:center;justify-content:center;
-cursor:pointer;border-radius:10px;
+border-radius:10px;cursor:pointer;
 }
 </style>
 </head>
@@ -25,39 +23,15 @@ cursor:pointer;border-radius:10px;
 <body>
 
 <h1>🎰 瑪麗隔壁刮刮樂</h1>
-
-<p id="status">登入中...</p>
+<p>每人只能刮一次</p>
 
 <div id="grid"></div>
 
 <script>
 
-let userId=null
-
-async function init(){
-
-await liff.init({
-liffId:"Uc9ff85c00fd284ca9529ad568484d69b"
-})
-
-if(!liff.isLoggedIn()){
-liff.login()
-return
-}
-
-let profile=await liff.getProfile()
-userId=profile.userId
-
-document.getElementById("status").innerText="歡迎："+profile.displayName
-
-loadGame()
-
-}
-
-function loadGame(){
+let played = false
 
 let prizes=["大獎","二獎","三獎",...Array(77).fill("未中")]
-
 prizes.sort(()=>Math.random()-0.5)
 
 let grid=document.getElementById("grid")
@@ -70,23 +44,19 @@ div.innerText=i+1
 
 div.onclick=()=>{
 
-if(localStorage.getItem("played")){
+if(played){
 alert("你已經刮過了")
 return
 }
 
 div.innerText=prizes[i]
-localStorage.setItem("played",true)
+played=true
 
 }
 
 grid.appendChild(div)
 
 }
-
-}
-
-init()
 
 </script>
 
